@@ -5,6 +5,11 @@
 #include <list.h>
 #include <stdint.h>
 
+bool set_fcfs;
+
+typedef int64_t tick_t; //Tip dannyh dlya vsego chto izmeryaetsa v tikah CPU
+int global_nomer; //poryadkovy nomer potoka dlya sortirovki
+
 /* States in a thread's life cycle. */
 enum thread_status
   {
@@ -83,17 +88,23 @@ typedef int tid_t;
 struct thread
   {
     /* Owned by thread.c. */
+    struct list ochered;
+    struct lock *ojidanie;    
+    struct list_elem ochered_elem;
+    int inborn_prioritet;
+    tick_t CPU_BURST;
+    tick_t vremya_raboty;
+    int nomer;
     tid_t tid;                          /* Thread identifier. */
     enum thread_status status;          /* Thread state. */
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
-    int64_t sleeptime;
-    int64_t original_priority;
-    struct list queue;
-    struct list_elem queue_elem;
-    struct lock *wait;
+    
+    
+    
+
 
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
@@ -115,11 +126,15 @@ extern bool thread_mlfqs;
 void thread_init (void);
 void thread_start (void);
 
+bool sravnenie_prioritetov(struct list_elem* first_thread, struct list_elem* second_thread);
+
 void thread_tick (void);
 void thread_print_stats (void);
 
 typedef void thread_func (void *aux);
 tid_t thread_create (const char *name, int priority, thread_func *, void *);
+
+tid_t thread_create_fcfs (const char *name, int priority, tick_t CPUburst, thread_func *, void *); //
 
 void thread_block (void);
 void thread_unblock (struct thread *);
